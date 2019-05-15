@@ -6,9 +6,6 @@ This code is based on "Lei Mao" CycleGAN-VC (Clone to : https://github.com/leima
 
 CycleGAN-VC2: Improved CycleGAN-based Non-parallel Voice Conversion, 
 Takuhiro Kaneko, Hirokazu Kameoka, Kou Tanaka, and Nobukatsu Hojo, arxiv 2019
-<p align="center">
-    <img src = "./figures/VC2_Model.png" width="100%">
-</p>
 
 Data save as HDF5 format
 (world_decompose extracts f0, aperiodicity and spectral envelope. This function is computationally intensive.)
