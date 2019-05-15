@@ -107,7 +107,7 @@ optional arguments:
 ```
 For example,
 ```bash
-$ python train.py --gen_model CycleGAN-VC2 --silence=True
+$ python train.py --gen_model CycleGAN-VC2
 ```
 
 ### Conversion
