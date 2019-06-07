@@ -7,7 +7,7 @@ from datetime import datetime
 class CycleGAN(object):
 
     def __init__(self, num_features, mode = 'train',
-                 log_dir = './log', model_name='tmp.ckpt', FEAT=True, gen_model='generator_gatedcnn'):
+                 log_dir = './log', model_name='tmp.ckpt', gen_model='generator_gatedcnn'):
 
         self.num_features = num_features
         self.input_shape = [None, num_features, None] # [batch_size, num_features, num_frames]
@@ -133,11 +133,11 @@ class CycleGAN(object):
         self.discriminator_optimizer = tf.train.AdamOptimizer(learning_rate = self.discriminator_learning_rate, beta1 = 0.5).minimize(self.discriminator_loss, var_list = self.discriminator_vars)
         self.generator_optimizer = tf.train.AdamOptimizer(learning_rate = self.generator_learning_rate, beta1 = 0.5).minimize(self.generator_loss, var_list = self.generator_vars) 
 
-    def train(self, input_A, input_B, lambda_cycle, lambda_identity, lambda_feat, generator_learning_rate, discriminator_learning_rate):
+    def train(self, input_A, input_B, lambda_cycle, lambda_identity, generator_learning_rate, discriminator_learning_rate):
 
         generation_A, generation_B, generator_loss, _, generator_summaries, generator_loss_A2B = self.sess.run(
             [self.generation_A, self.generation_B, self.generator_loss, self.generator_optimizer, self.generator_summaries, self.generator_loss_A2B], \
-            feed_dict = {self.lambda_cycle: lambda_cycle, self.lambda_identity: lambda_identity, self.lambda_feat: lambda_feat, self.input_A_real: input_A, self.input_B_real: input_B, self.generator_learning_rate: generator_learning_rate})
+            feed_dict = {self.lambda_cycle: lambda_cycle, self.lambda_identity: lambda_identity, self.input_A_real: input_A, self.input_B_real: input_B, self.generator_learning_rate: generator_learning_rate})
 
         self.writer.add_summary(generator_summaries, self.train_step)
 

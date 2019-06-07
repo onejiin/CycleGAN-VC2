@@ -34,24 +34,32 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
     start_time = time.time()
 
     # Data load using HDF5, world vocoder has extra high complexity.(e.g., 1 song -> 5 min)
-    if not os.path.exists(hdf5_path[0]):
-        os.makedirs(hdf5_path[0])
-        os.makedirs(hdf5_path[1])
-        f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data_toSave(num_mcep, hdf5_dir=hdf5_path[0],
-                                                                                                 wav_dir=train_A_dir,
-                                                                                                 sr=sampling_rate,
-                                                                                                 frame_period=5.0,
-                                                                                                 coded_dim24=24,
-                                                                                                 coded_dim36=36)
-        f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data_toSave(num_mcep, hdf5_dir=hdf5_path[1],
-                                                                                                 wav_dir=train_B_dir,
-                                                                                                 sr=sampling_rate,
-                                                                                                 frame_period=5.0,
-                                                                                                 coded_dim24=24,
-                                                                                                 coded_dim36=36)
+    if hdf5_path[0] is None:
+        wavs_A = load_wavs(wav_dir=train_A_dir, sr=sampling_rate)
+        wavs_B = load_wavs(wav_dir=train_B_dir, sr=sampling_rate)
+        f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data(wavs=wavs_A, fs=sampling_rate,
+                                                                         frame_period=frame_period, coded_dim=num_mcep)
+        f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data(wavs=wavs_B, fs=sampling_rate,
+                                                                         frame_period=frame_period, coded_dim=num_mcep)
     else:
-        f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data_toLoad(num_mcep, hdf5_dir=hdf5_path[0])
-        f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data_toLoad(num_mcep, hdf5_dir=hdf5_path[1])
+        if not os.path.exists(hdf5_path[0]):
+            os.makedirs(hdf5_path[0])
+            os.makedirs(hdf5_path[1])
+            f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data_toSave(num_mcep, hdf5_dir=hdf5_path[0],
+                                                                                                     wav_dir=train_A_dir,
+                                                                                                     sr=sampling_rate,
+                                                                                                     frame_period=5.0,
+                                                                                                     coded_dim24=24,
+                                                                                                     coded_dim36=36)
+            f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data_toSave(num_mcep, hdf5_dir=hdf5_path[1],
+                                                                                                     wav_dir=train_B_dir,
+                                                                                                     sr=sampling_rate,
+                                                                                                     frame_period=5.0,
+                                                                                                     coded_dim24=24,
+                                                                                                     coded_dim36=36)
+        else:
+            f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data_toLoad(num_mcep, hdf5_dir=hdf5_path[0])
+            f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data_toLoad(num_mcep, hdf5_dir=hdf5_path[1])
 
 
     log_f0s_mean_A, log_f0s_std_A = logf0_statistics(f0s_A)
@@ -99,7 +107,7 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
     # ---------------------------------------------- Data preprocessing ---------------------------------------------- #
 
     # Model define
-    model = CycleGAN(num_features = num_mcep, log_dir=tensorboard_log_dir, model_name=model_name, FEAT=FEAT, gen_model=gen_model)
+    model = CycleGAN(num_features = num_mcep, log_dir=tensorboard_log_dir, model_name=model_name, gen_model=gen_model)
     # load model
     if os.path.exists(os.path.join(model_dir, (model_name+".index"))) == True:
         model.load(filepath=os.path.join(model_dir, model_name))
@@ -129,7 +137,7 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
 
             generator_loss, discriminator_loss, generator_loss_A2B = model.train\
                 (input_A = dataset_A[start:end], input_B = dataset_B[start:end],
-                 lambda_cycle = lambda_cycle, lambda_identity = lambda_identity, lambda_feat = lambda_feat,
+                 lambda_cycle = lambda_cycle, lambda_identity = lambda_identity,
                  generator_learning_rate = generator_learning_rate, discriminator_learning_rate = discriminator_learning_rate)
             model.summary()
 
@@ -203,19 +211,19 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Train CycleGAN-VC2 model')
 
-    train_A_dir_default = './data/vcc2016_training/SF1'
-    train_B_dir_default = './data/vcc2016_training/TF2'
+    train_A_dir_default = '/root/onejin/train/ma'
+    train_B_dir_default = '/root/onejin/train/fe'
     model_dir_default = './model/sf1_tf2'
     model_name_default = 'sf1_tf2.ckpt'
     random_seed_default = 0
-    validation_A_dir_default = './data/evaluation_all/SF1'
-    validation_B_dir_default = './data/evaluation_all/TF2'
+    validation_A_dir_default = '/root/onejin/test/ma'
+    validation_B_dir_default = '/root/onejin/test/fe'
     output_dir_default = './validation_output'
     tensorboard_log_dir_default = './log'
     generator_model_default = 'CycleGAN-VC2'
     MCEPs_dim_default = 32
-    hdf5A_path_defalut = './data/vcc2016_training/SF1_hdf5'
-    hdf5B_path_defalut = './data/vcc2016_training/SF1_hdf5'
+    hdf5A_path_defalut = None
+    hdf5B_path_defalut = None
     lambda_cycle_defalut = 10.0
     lambda_identity_defalut = 5.0
 
