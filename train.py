@@ -139,7 +139,8 @@ def train(train_A_dir, train_B_dir, model_dir, model_name, random_seed, validati
                 (input_A = dataset_A[start:end], input_B = dataset_B[start:end],
                  lambda_cycle = lambda_cycle, lambda_identity = lambda_identity,
                  generator_learning_rate = generator_learning_rate, discriminator_learning_rate = discriminator_learning_rate)
-            model.summary()
+# issue #4,
+#            model.summary()
 
             # Minimum AtoB loss model save
             if gen_loss_thres > generator_loss_A2B:
